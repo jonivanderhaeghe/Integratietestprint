@@ -25,7 +25,7 @@ LiquidCrystal lcd(A6, A5, A4, A3, A2, A1);
 GSM gsm;
 
 // GSM variables
-  char TESTBOX[20]= "+32474022239"; // nr testbox
+  char TESTBOX[20]= "+32491736777"; // nr testbox
 // +32474022239
 // String SimOut = ""; // not used any more
 int error;
@@ -61,7 +61,11 @@ int selectB = 24;
 int selectC = 26;
 int enable = 28;
 
-String rapportMeting= "";
+// String rapportMeting= "";
+  int joow;
+  String jowbro;
+
+String rapportMeting [8];
 
 /****************************************************
   ________  _______  _________  ___  ___  ________
@@ -82,7 +86,6 @@ void setup() {
   pinMode(selectB,OUTPUT);
   pinMode(selectC,OUTPUT);
   pinMode(enable,OUTPUT);
-
 
 	//Init Display
 	lcd.begin(20, 4); // initialize the lcd
@@ -122,94 +125,129 @@ void setup() {
 	// look for received SMS
 	 if (gsm.IsRegistered()) {
 	    Serial.println("GSM is registered");
-      // PowerUsageReset(false, false, false, false);
-      // Check_SMS();
-      // delay(2000);
-      // KioskInit("19/05/20,15:30:32+00;ik;+228;;;;;775135380");
-      // Channels(1,50);
-      // delay(1000);
-      // PowerUsageSet(false, false, false, true);
-      // PowerUsageReset(false, false, false, false);
-      // KioskAskStatus("19/05/21,16:17:43+00;rcs;;;;;;942583047");
-      // KioskDeleteClient(1);
-      // Channels(1, 500);
-      // PowerUsage();
-      // KioskDeleteClient(1);
-      // delay(500);
-      // delay(7000);
-      // Check_SMS();
-      // delay(1000);
-      //KioskCalculateCredit();
-      // KioskAddCredit("19/05/22,11:15:44+00;acc;1;;100;;;687412345");
 	  }
 
+  PowerUsageReset();
+  Check_SMS();
+  delay(1000);
 
-  // lcd.clear();
-  // lcd.setCursor(0,0);
-  // lcd.print("Start testen");
-  // delay(5000);
+  KioskInit("19/05/20,15:30:32+00;ik;+228;;;;;775135380");
+  KioskControlSmsFeedback("ikOK");
 
-  // lcd.clear();
-  // lcd.setCursor(0,0);
-  // lcd.print("Testen ...");
+  // Channels(0,50);
 
+  // PowerUsageSet(true, false, false, true);
+  // PowerUsageReset();
+
+  // KioskAskStatus("19/05/21,16:17:43+00;rcs;;;;;;942583047");
+  // KioskControlSmsFeedback("rcsOK");
+
+  // KioskCalculateCredit(0);
+
+  // KioskDeleteClient(0);
+
+  // rapport();
 
   Serial.println("einde");
   lcd.clear();
   lcd.setCursor(0,0);
-  lcd.print("Einde");
-
-
-
-
-
+  lcd.println("Einde");
 }  // end setup ***************************************
 
-void KioskCalculateCredit() {
-  int val[8];
-  int j = 0;
-  String hond = "1,2,3,4,5,6,7,8,";
-  // char lalal = hond.charAt(0);
-  // int joow = lalal - '0';
-  for (int i = 0; i < 14; i=i+2)
+
+
+void KioskCalculateCredit(int poort) { // poort begin bij 0 tot en met 7, door de index van een array
+
+  int val[16];
+  int x = 0;
+  // String hond = "17,23,80,40,0,0,25,25,";
+  // hond.toInt();
+  // Serial.println(hond.toInt());
+  jowbro;
+  Serial.println(jowbro);
+  for (int i = 0; i < 8; i++)
   {
-  char lalal = hond.charAt(i);
-  int joow = lalal - '0';
-    val[j] = joow; 
-    j++;
+    val[x] = jowbro.toInt();
+
+    if (val[x] < 10)
+    {
+      jowbro.remove(0,2);
+    }
+    else if (val[x] > 10)
+    {
+      jowbro.remove(0,3);
+    }
+
+    // Serial.println(hond);
+    Serial.print(val[x]);
+    x++;
   }
 
-  Serial.println(val[8]);
-
-  String meting [4] = {"Stroomafname perfect", "Stroomafname binnen de marge", "slechte callibratie", "slechte bekabeling" }
-  // SmsPortNum
+  String meting [4] = {"Stroomafname perfect", "Stroomafname binnen de marge", "slechte callibratie", "slechte bekabeling" };
   // charAt(index) haal een karakter uit een string met index
-
-  if (val[1] == 0) {
-    Serial.println(meting[0]);
-    rapportMeting = meting[0];
+  
+  if (val[poort] == 0) {
+    // Serial.println(meting[0]);
+    rapportMeting[poort] = meting[0];
   }
   
-  else if (val[1] < 0.5)
+  else if (val[poort] < 3)
   {
-    Serial.println(meting[1]);
-    rapportMeting = meting[01;
+    // Serial.println(meting[1]);
+    rapportMeting[poort] = meting[1];
   }
-  else if (val[1] < 10)
+  else if (val[poort] < 25)
   {
-    Serial.println(meting[2]);
-    rapportMeting = meting[2];
+    // Serial.println(meting[2]);
+    rapportMeting[poort] = meting[2];
   }
-  else
+  else if (val[poort] > 25)
   {
-    Serial.println(meting[3]);
-    rapportMeting = meting[3];
+    // Serial.println(meting[3]);
+    rapportMeting[poort] = meting[3];
   }
 }
 
 void rapport () {
-  Serial.println(rapportMeting);
+  String rapportPoortnummer [8] = {"Poort 1 : ", "Poort 2 : ", "Poort 3 : ", "Poort 4 : ", "Poort 5 : ", "Poort 6 : ", "Poort 7 : ", "Poort 8 : "};
+  Serial.println("Rapport ...");
+  Serial.println(rapportPoortnummer[0] + rapportMeting[0] );
+  Serial.println(rapportPoortnummer[1] + rapportMeting[1] );
+  Serial.println(rapportPoortnummer[2] + rapportMeting[2] );
+  Serial.println(rapportPoortnummer[3] + rapportMeting[3] );
+  Serial.println(rapportPoortnummer[4] + rapportMeting[4] );
+  Serial.println(rapportPoortnummer[5] + rapportMeting[5] );
+  Serial.println(rapportPoortnummer[6] + rapportMeting[6] );
+  Serial.println(rapportPoortnummer[7] + rapportMeting[7] );
+
 }
+
+void KioskControlSmsFeedback(String smsType) {
+
+  for (int i = 0; i < 2; i++)
+  {
+    if (SmsMessType == smsType)
+    {
+      Serial.println("SMS 'OK' ontvangen");
+    }
+    
+    else if (i < 1)
+    {
+      for (int i = 0; i < 1; i++)
+      {
+      Serial.println("SMS 'OK' mislukt, opnieuw proberen ...");
+        delay(10000);
+        Check_SMS();
+      }
+    }
+    else
+    {
+      Serial.println("SMS 'OK' mislukt");
+    }
+  }
+
+}
+
 void KioskInit(String messageIK) {
 
   lcd.clear();
@@ -246,14 +284,10 @@ void KioskAddClient(String messageIC) {
   lcd.print("Klant toevoegen" );
 
   char ConvertedMessageIC[121] = "";
-  Serial.println("1");
   messageIC.toCharArray(ConvertedMessageIC,121);
-  Serial.println("2");
   if (gsm.IsRegistered()){
-    Serial.println("3");
       gsm.SendSMS(TESTBOX, ConvertedMessageIC);
       delay(2000);
-      Serial.println("4");
       Serial.println("Message sent: ");
       Serial.print (ConvertedMessageIC);
       Serial.print(" to: ");
@@ -284,24 +318,24 @@ void KioskAddCredit(String messageACC) {
 }
 
 
-void Channels (int kanaal, int credit) {
+void Channels (int poort, int credit) {
 
   // int omzetten naar string met nieuwe variabele naam kanaalnumber en valueCredit
-  String kanaalnummer = String(kanaal);
+  String poortnummer = String(poort+1);
   String creditValue = String(credit);
 
   // String maken met keuze kanaal.
-  String addClient = "19/05/20,15:59:46+00;ic;" + kanaalnummer + ";+000001;;;;907786589";
-  String addCredit = "19/05/20,16:03:47+00;acc;" + kanaalnummer + ";;" + creditValue + ";;;805324419";
+  String addClient = "19/05/20,15:59:46+00;ic;" + poortnummer + ";+000001;;;;907786589";
+  String addCredit = "19/05/20,16:03:47+00;acc;" + poortnummer + ";;" + creditValue + ";;;805324419";
 
   KioskAddClient(addClient);
-  delay(15000);
+  delay(20000);
   Check_SMS();
-  delay(2000);
+  KioskControlSmsFeedback("icOK");
   KioskAddCredit(addCredit);
-  delay(15000);
+  delay(20000);
   Check_SMS();
-  delay(2000);
+  KioskControlSmsFeedback("accOK");
 }
 
 
@@ -321,16 +355,16 @@ void PowerUsageSet (bool pinA, bool pinB, bool pinC, bool pinE) {
   delay(20000);
 }
 
-void PowerUsageReset(bool pinA, bool pinB, bool pinC, bool pinE) {
+void PowerUsageReset() {
   Serial.println("stroom uit");
-  digitalWrite(selectA,pinA);
-  digitalWrite(selectB, pinB);
-  digitalWrite(selectC, pinC);
-  digitalWrite(enable, pinE);
+  digitalWrite(selectA, LOW);
+  digitalWrite(selectB, LOW);
+  digitalWrite(selectC, LOW);
+  digitalWrite(enable, LOW);
   delay(200);
 }
 
-void KioskAskStatus(String messageRCS, int kanaal ) {
+void KioskAskStatus(String messageRCS) {
 
   lcd.clear();
   lcd.setCursor(0,0);
@@ -352,12 +386,10 @@ void KioskAskStatus(String messageRCS, int kanaal ) {
       Check_SMS();
       delay(2000);
   }
-  String test = ",0,0,0,0,0,0,0,0,";
-  Serial.println(test.charAt(2));
 }
 
 
-void KioskDeleteClient(int kanaal) {
+void KioskDeleteClient(int poort) {
 
 
   lcd.clear();
@@ -370,8 +402,8 @@ void KioskDeleteClient(int kanaal) {
   if (gsm.IsRegistered()){
 
   char deleteClientArray[121] = "";
-  String kanaalnummer = String(kanaal);
-  String deleteClient = "19/05/20,16:3:47+00;dc;" + kanaalnummer +";;;;;448440965";
+  String poortnummer = String(poort+1);
+  String deleteClient = "19/05/20,16:3:47+00;dc;" + poortnummer +";;;;;448440965";
 
       deleteClient.toCharArray(deleteClientArray,121);
 
@@ -382,7 +414,7 @@ void KioskDeleteClient(int kanaal) {
       Serial.println(TESTBOX);
       delay(15000);
       Check_SMS();
-      delay(2000);
+      KioskControlSmsFeedback("dcOK");
   } 
 }
 
@@ -391,7 +423,8 @@ void KioskDeleteClient(int kanaal) {
 lookup an Sms in Sim800 mem and process
 ****************************************/
 void Check_SMS()  //Check if there is an sms 'type_sms'
-{  Serial.println("check sms ");
+{  
+  Serial.println("check sms ");
   signed char pos_sms_rx = 1;  //Received SMS position 
   signed char result;    
   delay(1000);// delay nodig, anders wordt SMS niet geprocessed ??
@@ -399,24 +432,26 @@ void Check_SMS()  //Check if there is an sms 'type_sms'
   pos_sms_rx = gsm.IsSMSPresent(type_sms); // if present, result > 0
   if (pos_sms_rx > 0) { // SMS present
   
-      Serial.println("check sms pos ");
-      Serial.println(pos_sms_rx);
+      Serial.println("check sms pos :");
+      Serial.print(pos_sms_rx);
    
     //Read text/number/position of sms
     result = gsm.GetSMS(pos_sms_rx,number_incoming,sms_rx,120);
 
     // Serial.println(sms_rx);
+        
     if (result == GETSMS_READ_SMS) {
       
         parseSms(sms_rx);
+        delay(2000);
           //  Serial.print(SmsMessType);
-           Serial.println("** SmsID ");
+           Serial.println("SmsID : ");
            Serial.println(SmsID);
-           Serial.println(SmsMessType);
-           Serial.println(SmsPortNum);
-           Serial.println(SmsPortNum);
-           Serial.println(SmsDummy1);
-           Serial.println(SmsDummy2);
+          //  Serial.println(SmsMessType);
+          //  Serial.println(SmsPortNum);
+          //  Serial.println(SmsPortNum);
+          //  Serial.println(SmsDummy1);
+          //  Serial.println(sms_rx);
     }
     error = gsm.DeleteSMS(pos_sms_rx);
    
@@ -434,10 +469,8 @@ void Check_SMS()  //Check if there is an sms 'type_sms'
         Serial.println(error);
       }
 
-    Serial.println("yow");
     delay(1000);
   }
-  Serial.println("woy");
 }
 
 /*********************************************
@@ -452,6 +485,7 @@ void parseSms(String _SmsText) {
   findNextField(_SmsText, StartChar).toCharArray(GatewayTime,21);
   SmsMessType = findNextField(_SmsText, StartChar);
   SmsPortNum = (findNextField(_SmsText, StartChar));
+  jowbro = SmsPortNum;
   findNextField(_SmsText, StartChar).toCharArray(SmsCustGsmNum,14);
   SmsCredits = StringToLong(findNextField(_SmsText, StartChar));
   SmsDummy1 = findNextField(_SmsText, StartChar);           //A* using these dummies for parsing of new SMS message type
