@@ -134,19 +134,19 @@ void setup() {
   KioskInit("19/05/20,15:30:32+00;ik;+228;;;;;775135380");
   KioskControlSmsFeedback("ikOK");
 
-  // Channels(0,50);
+  Channels(0,50);
 
-  // PowerUsageSet(true, false, false, true);
-  // PowerUsageReset();
+  PowerUsageSet(true, false, false, true);
+  PowerUsageReset();
 
-  // KioskAskStatus("19/05/21,16:17:43+00;rcs;;;;;;942583047");
-  // KioskControlSmsFeedback("rcsOK");
+  KioskAskStatus("19/05/21,16:17:43+00;rcs;;;;;;942583047");
+  KioskControlSmsFeedback("rcsOK");
 
-  // KioskCalculateCredit(0);
+  KioskCalculateCredit(0);
 
-  // KioskDeleteClient(0);
+  KioskDeleteClient(0);
 
-  // rapport();
+  rapport();
 
   Serial.println("einde");
   lcd.clear();
