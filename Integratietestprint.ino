@@ -89,12 +89,12 @@ void setup() {
   #endif
 
   KioskGsmRegistration();
-  KioskRoutine(0,0);
+  KioskRoutine(0,0, true, false, false, true);
 
   lcd.clear();
   lcd.setCursor(0,0);
   lcd.print("Einde");
-  Serial.println"Einde");
+  Serial.println("Einde");
     
 }  // end setup ***************************************
 
@@ -154,7 +154,7 @@ void KioskGsmRegistration() {
   }
 }
 
-void KioskRoutine(int poort, int credit) {
+void KioskRoutine(int poort, int credit, bool A, bool B, bool C, bool E) {
 
   if (gsm.IsRegistered() && smsFeedback == true) {
       KioskPowerUsageReset();
@@ -162,19 +162,20 @@ void KioskRoutine(int poort, int credit) {
 
       KioskInit("19/05/20,15:30:32+00;ik;+228;;;;;775135380");
       KioskControlSmsFeedback("ikOK");
+        
+        KioskChannels(poort,credit);
 
-      KioskChannels(poort,credit);
+        KioskPowerUsageSet(A, B, C, E);
+        delay(2000);
+        KioskPowerUsageReset();
 
-      KioskPowerUsageSet(true, false, false, true);
-      delay(2000);
-      KioskPowerUsageReset();
+        KioskAskStatus("19/05/21,16:17:43+00;rcs;;;;;;942583047");
+        KioskControlSmsFeedback("rcsOK");
 
-      KioskAskStatus("19/05/21,16:17:43+00;rcs;;;;;;942583047");
-      KioskControlSmsFeedback("rcsOK");
+        KioskCalculateCredit(poort);
 
-      KioskCalculateCredit(poort);
-
-      KioskDeleteClient(poort);
+        KioskDeleteClient(poort);
+    
 
       KioskRapport();
   }
@@ -253,7 +254,7 @@ void KioskControlSmsFeedback(String smsType) {
     {
       if (SmsMessType == smsType)
       {
-        Serial.println("SMS 'OK' ontvangen");
+        Serial.println("SMS " + smsType + " ontvangen");
         smsFeedback = true;
       }
       
@@ -261,7 +262,7 @@ void KioskControlSmsFeedback(String smsType) {
       {
         for (int i = 0; i < 1; i++)
         {
-        Serial.println("SMS 'OK' mislukt, opnieuw proberen ...");
+        Serial.println("SMS " + smsType + " mislukt, opnieuw proberen ...");
           delay(10000);
           Check_SMS();
         }
@@ -369,7 +370,7 @@ void KioskChannels (int poort, int credit) {
 
 
 void KioskPowerUsageSet (bool pinA, bool pinB, bool pinC, bool pinE) {
-
+  
     lcd.clear();
     lcd.setCursor(0,0);
     lcd.print("Testen ...");
