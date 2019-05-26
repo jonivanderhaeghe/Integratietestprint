@@ -1,8 +1,6 @@
 #include "pin_def_ext.h"
 #include "GSM_2560.h"
 #include <string.h>
-
-
 #include <LiquidCrystal.h>
 
 // GSM module pins definition
@@ -21,13 +19,11 @@ LiquidCrystal lcd(A6, A5, A4, A3, A2, A1);
 //         END definitions V4+
 
 
-// instance of GSM class
 GSM gsm;
 
 // GSM variables
   char TESTBOX[20]= "+32491736777"; // nr testbox
 // +32474022239
-// String SimOut = ""; // not used any more
 int error;
 volatile bool SmsReceived = false;
 char number_incoming[20];
@@ -61,11 +57,9 @@ int selectB = 24;
 int selectC = 26;
 int enable = 28;
 
-// String rapportMeting= "";
-  int joow;
-  String jowbro;
-
+String jowbro;
 String rapportMeting [8];
+bool smsFeedback;
 
 /****************************************************
   ________  _______  _________  ___  ___  ________
@@ -87,74 +81,88 @@ void setup() {
   pinMode(selectC,OUTPUT);
   pinMode(enable,OUTPUT);
 
-	//Init Display
-	lcd.begin(20, 4); // initialize the lcd
-
-#ifndef V2
-	pinMode(LCDLedPin, OUTPUT); // V4+
-
-#endif
-
+	lcd.begin(20, 4);
 	SetBacklightOn();
+
+  #ifndef V2
+    pinMode(LCDLedPin, OUTPUT); // V4+
+  #endif
+  KioskGsmRegistration();
+  KioskInit("lalalala");
+  KioskControlSmsFeedback("ikOK");
+    
+}  // end setup ***************************************
+
+void KioskGsmRegistration() {
+
   lcd.clear();
   lcd.setCursor(0,0);
   lcd.print("Integratietestprint");
-  delay(2000);
-
-	// Reset GSM
+  delay(5000);
 	lcd.clear();	// clear display, set cursor position to zero
 	lcd.setCursor(0, 0);
 	lcd.print("Initializing GSM");
-	gsm.TurnOn(9600);	//module reset power on; factory reset, disable echo
-	
 
-	Serial.println("End GSM Reset, trying to connect");
-
-	
-	// test connection with provider
-	delay(7000); // wait 7 seconds, then see if registration ok
+  gsm.TurnOn(9600);	//module reset power on; factory reset, disable echo
+  Serial.println("End GSM Reset, trying to connect");
+  
+  delay(7000); // wait 7 seconds, then see if registration ok
 	//GetRegistered();
 	gsm.CheckRegistration(); // updates status gsm.IsRegistered(), does InitParam(PARAM_SET_1) if needed
-	
-	
-	Serial.println("GSM Init Done");
+  Serial.println("GSM Init Done");
 
-	delay(1000);
-  
-  Serial.println(gsm.IsRegistered());
-	// look for received SMS
-	 if (gsm.IsRegistered()) {
-	    Serial.println("GSM is registered");
-	  }
+  lcd.clear();	// clear display, set cursor position to zero
+	lcd.setCursor(0, 0);
+	lcd.print("Connection OK");
 
-  PowerUsageReset();
-  Check_SMS();
-  delay(1000);
+  for (int i = 0; i < 2; i++)
+  {
+    if (gsm.IsRegistered())
+    {
+      Serial.println("GSM is registered");
+      Serial.println(gsm.IsRegistered());
+      smsFeedback = true;
+    }
+    
+    else if (i < 1)
+    {
+        Serial.println("GSM not registerd, opnieuw proberen ...");
+        Serial.println(gsm.IsRegistered());
+        gsm.TurnOn(9600);
+        delay(7000);
+        gsm.CheckRegistration();
+    }
+    else
+    {
+      Serial.println("GSM not registerd");
+      
+    }
+  }
+}
 
-  KioskInit("19/05/20,15:30:32+00;ik;+228;;;;;775135380");
-  KioskControlSmsFeedback("ikOK");
+void KioskRoutine(int poort, int credit) {
 
-  Channels(0,50);
+      KioskPowerUsageReset();
+      Check_SMS();
+      delay(1000);
 
-  PowerUsageSet(true, false, false, true);
-  PowerUsageReset();
+      KioskInit("19/05/20,15:30:32+00;ik;+228;;;;;775135380");
+      KioskControlSmsFeedback("ikOK");
 
-  KioskAskStatus("19/05/21,16:17:43+00;rcs;;;;;;942583047");
-  KioskControlSmsFeedback("rcsOK");
+      KioskChannels(0,50);
 
-  KioskCalculateCredit(0);
+      KioskPowerUsageSet(true, false, false, true);
+      KioskPowerUsageReset();
 
-  KioskDeleteClient(0);
+      KioskAskStatus("19/05/21,16:17:43+00;rcs;;;;;;942583047");
+      KioskControlSmsFeedback("rcsOK");
 
-  rapport();
+      KioskCalculateCredit(0);
 
-  Serial.println("einde");
-  lcd.clear();
-  lcd.setCursor(0,0);
-  lcd.println("Einde");
-}  // end setup ***************************************
+      KioskDeleteClient(0);
 
-
+      KioskRapport();
+}
 
 void KioskCalculateCredit(int poort) { // poort begin bij 0 tot en met 7, door de index van een array
 
@@ -208,7 +216,7 @@ void KioskCalculateCredit(int poort) { // poort begin bij 0 tot en met 7, door d
   }
 }
 
-void rapport () {
+void KioskRapport () {
   String rapportPoortnummer [8] = {"Poort 1 : ", "Poort 2 : ", "Poort 3 : ", "Poort 4 : ", "Poort 5 : ", "Poort 6 : ", "Poort 7 : ", "Poort 8 : "};
   Serial.println("Rapport ...");
   Serial.println(rapportPoortnummer[0] + rapportMeting[0] );
@@ -229,6 +237,7 @@ void KioskControlSmsFeedback(String smsType) {
     if (SmsMessType == smsType)
     {
       Serial.println("SMS 'OK' ontvangen");
+      smsFeedback = true;
     }
     
     else if (i < 1)
@@ -243,6 +252,8 @@ void KioskControlSmsFeedback(String smsType) {
     else
     {
       Serial.println("SMS 'OK' mislukt");
+      smsFeedback = false;
+      
     }
   }
 
@@ -262,7 +273,7 @@ void KioskInit(String messageIK) {
   
   messageIK.toCharArray(ConvertedMessageIK,121);
 
-  if (gsm.IsRegistered()){
+  if (gsm.IsRegistered() && smsFeedback == true){
       gsm.SendSMS(TESTBOX, ConvertedMessageIK);
       Serial.println("Message sent: ");
       Serial.print (ConvertedMessageIK);
@@ -285,7 +296,7 @@ void KioskAddClient(String messageIC) {
 
   char ConvertedMessageIC[121] = "";
   messageIC.toCharArray(ConvertedMessageIC,121);
-  if (gsm.IsRegistered()){
+  if (gsm.IsRegistered() && smsFeedback == true){
       gsm.SendSMS(TESTBOX, ConvertedMessageIC);
       delay(2000);
       Serial.println("Message sent: ");
@@ -308,7 +319,7 @@ void KioskAddCredit(String messageACC) {
   
   messageACC.toCharArray(ConvertedMessageACC,121);
 
-  if (gsm.IsRegistered()){
+  if (gsm.IsRegistered() && smsFeedback == true){
       gsm.SendSMS(TESTBOX, ConvertedMessageACC);
       Serial.println("Message sent: ");
       Serial.print (ConvertedMessageACC);
@@ -318,7 +329,7 @@ void KioskAddCredit(String messageACC) {
 }
 
 
-void Channels (int poort, int credit) {
+void KioskChannels (int poort, int credit) {
 
   // int omzetten naar string met nieuwe variabele naam kanaalnumber en valueCredit
   String poortnummer = String(poort+1);
@@ -339,7 +350,7 @@ void Channels (int poort, int credit) {
 }
 
 
-void PowerUsageSet (bool pinA, bool pinB, bool pinC, bool pinE) {
+void KioskPowerUsageSet (bool pinA, bool pinB, bool pinC, bool pinE) {
 
   lcd.clear();
   lcd.setCursor(0,0);
@@ -355,7 +366,7 @@ void PowerUsageSet (bool pinA, bool pinB, bool pinC, bool pinE) {
   delay(20000);
 }
 
-void PowerUsageReset() {
+void KioskPowerUsageReset() {
   Serial.println("stroom uit");
   digitalWrite(selectA, LOW);
   digitalWrite(selectB, LOW);
@@ -376,7 +387,7 @@ void KioskAskStatus(String messageRCS) {
   
   messageRCS.toCharArray(ConvertedMessageRCS,121);
 
-  if (gsm.IsRegistered()){
+  if (gsm.IsRegistered() && smsFeedback == true){
       gsm.SendSMS(TESTBOX, ConvertedMessageRCS);
       Serial.println("Message sent: ");
       Serial.print (ConvertedMessageRCS);
@@ -399,7 +410,7 @@ void KioskDeleteClient(int poort) {
   lcd.print("Klant verwijderen:" );
 
   
-  if (gsm.IsRegistered()){
+  if (gsm.IsRegistered() && smsFeedback == true){
 
   char deleteClientArray[121] = "";
   String poortnummer = String(poort+1);
