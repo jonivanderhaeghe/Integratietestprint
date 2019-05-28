@@ -171,6 +171,7 @@ void KioskGsmRegistration() {
   }
 }
 
+
 void KioskRoutine(int poort, int credit, bool A, bool B, bool C, bool E) {
 
   if (gsm.IsRegistered() && smsFeedback == true) {
@@ -203,6 +204,7 @@ void KioskRoutine(int poort, int credit, bool A, bool B, bool C, bool E) {
     }
   }
 }
+
 
 void KioskCalculateCredit(int poort) { // poort begin bij 0 tot en met 7, door de index van een array
 
@@ -256,6 +258,7 @@ void KioskCalculateCredit(int poort) { // poort begin bij 0 tot en met 7, door d
         rapportMeting[poort] = meting[3];
       }
 }
+
 
 void KioskRapport () {
 
@@ -380,6 +383,8 @@ void KioskControlSmsFeedback(String smsType, int poort) {
     }
   } 
 }
+
+
 void KioskInit(String messageIK) {
 
 
@@ -509,6 +514,7 @@ void KioskPowerUsageReset() {
     delay(200);
 }
 
+
 void KioskAskStatus(String messageRCS) {
 
 
@@ -631,7 +637,6 @@ void parseSms(String _SmsText) {
   int StartChar = 0;
   findNextField(_SmsText, StartChar).toCharArray(GatewayTime,21);
   SmsMessType = findNextField(_SmsText, StartChar);
-  jowbrow = SmsMessType;
   SmsPortNum = (findNextField(_SmsText, StartChar));
   jowbro = SmsPortNum;
   findNextField(_SmsText, StartChar).toCharArray(SmsCustGsmNum,14);
