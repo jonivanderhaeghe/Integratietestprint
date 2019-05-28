@@ -56,12 +56,14 @@ int selectA = 22;
 int selectB = 24;
 int selectC = 26;
 int enable = 28;
+int button = 30;
 
 String jowbro;
 String rapportMeting [8];
 bool smsFeedback;
 int restart = 0;
 int restartTimes = 3;
+int buttonState = 0;
 
 /****************************************************
   ________  _______  _________  ___  ___  ________
@@ -82,6 +84,7 @@ void setup() {
   pinMode(selectB,OUTPUT);
   pinMode(selectC,OUTPUT);
   pinMode(enable,OUTPUT);
+  pinMode(button, INPUT);
 
 	lcd.begin(20, 4);
 	SetBacklightOn();
@@ -91,9 +94,9 @@ void setup() {
   #endif
 
   KioskGsmRegistration();
+  buttonState = digitalRead(button);
   KioskRoutine(0,50, false, false, false, true);
   // KioskPowerUsageSet(true,false,false,true);
-
     
 }  // end setup ***************************************
 
@@ -127,16 +130,17 @@ void KioskGsmRegistration() {
     {
       Serial.println("GSM is registered");
       Serial.println(gsm.IsRegistered());
+      KioskPowerUsageReset();
+      smsFeedback = true;
+      Check_SMS();
+      delay(500);
+      
       lcdStart();
       delay(200);
 	    lcd.setCursor(0, 2);
 	    lcd.print("Connection OK");
-
-      smsFeedback = true;
-      Check_SMS();
-      delay(500);
       i++;
-      KioskPowerUsageReset();
+
     }
     
     else if (i <1)
@@ -176,6 +180,7 @@ void KioskGsmRegistration() {
 
 void KioskRoutine(int poort, int credit, bool A, bool B, bool C, bool E) {
 
+  if (buttonState == HIGH) {
     if (gsm.IsRegistered() && smsFeedback == true) {
 
         KioskInit("19/05/20,15:30:32+00;ik;+228;;;;;775135380");
@@ -205,6 +210,7 @@ void KioskRoutine(int poort, int credit, bool A, bool B, bool C, bool E) {
         KioskRapport();
       }
     }
+  }
 }
 
 
@@ -268,7 +274,14 @@ void KioskRapport () {
 
     String rapportPoortnummer [8] = {"Poort 1 : ", "Poort 2 : ", "Poort 3 : ", "Poort 4 : ", "Poort 5 : ", "Poort 6 : ", "Poort 7 : ", "Poort 8 : "};
     Serial.println("Rapport ...");
+
     Serial.println(rapportPoortnummer[0] + rapportMeting[0] );
+    lcd.setCursor(0,1);
+    lcd.print("Rapport ...");
+    lcd.setCursor(0,2);
+    lcd.print(rapportPoortnummer[0]);
+    lcd.print(rapportMeting[0]);
+
     Serial.println(rapportPoortnummer[1] + rapportMeting[1] );
     Serial.println(rapportPoortnummer[2] + rapportMeting[2] );
     Serial.println(rapportPoortnummer[3] + rapportMeting[3] );
@@ -277,10 +290,6 @@ void KioskRapport () {
     Serial.println(rapportPoortnummer[6] + rapportMeting[6] );
     Serial.println(rapportPoortnummer[7] + rapportMeting[7] );
 
-    lcd.setCursor(0,2);
-    lcd.print("Rapport ...");
-    lcd.setCursor(0,3);
-    lcd.print(rapportPoortnummer[0] + rapportMeting[0] );
 }
 
 
@@ -358,7 +367,7 @@ void KioskControlSmsFeedback(String smsType, int poort) {
       {
         Serial.println("SMS " + smsType + " ontvangen");
         lcd.setCursor(0,2);
-        lcd.print("sms" + smsType + "ontvangen");
+        lcd.print("sms " + smsType + " ontvangen");
         smsFeedback = true;
         delay (5000);
       }
