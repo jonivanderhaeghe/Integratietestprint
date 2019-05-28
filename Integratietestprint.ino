@@ -94,7 +94,6 @@ void setup() {
   #endif
 
   KioskGsmRegistration();
-  buttonState = digitalRead(button);
   KioskRoutine(0,50, false, false, false, true);
   // KioskPowerUsageSet(true,false,false,true);
     
@@ -134,7 +133,7 @@ void KioskGsmRegistration() {
       smsFeedback = true;
       Check_SMS();
       delay(500);
-      
+
       lcdStart();
       delay(200);
 	    lcd.setCursor(0, 2);
@@ -179,9 +178,16 @@ void KioskGsmRegistration() {
 
 
 void KioskRoutine(int poort, int credit, bool A, bool B, bool C, bool E) {
+  Serial.println(buttonState);
+do
+{
+  buttonState = digitalRead(button);
+} while (buttonState == LOW);
 
   if (buttonState == HIGH) {
+  Serial.println(buttonState);
     if (gsm.IsRegistered() && smsFeedback == true) {
+  Serial.println(buttonState);
 
         KioskInit("19/05/20,15:30:32+00;ik;+228;;;;;775135380");
         KioskControlSmsFeedback("ikOK",poort);
