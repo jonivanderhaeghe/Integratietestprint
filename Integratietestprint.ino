@@ -176,7 +176,7 @@ void KioskRoutine(int poort, int credit, bool A, bool B, bool C, bool E) {
   if (gsm.IsRegistered() && smsFeedback == true) {
 
       KioskInit("19/05/20,15:30:32+00;ik;+228;;;;;775135380");
-      KioskControlSmsFeedback("ikOK");
+      KioskControlSmsFeedback("ikOK",poort);
         
       KioskKlantInit(poort,credit);
 
@@ -190,7 +190,7 @@ void KioskRoutine(int poort, int credit, bool A, bool B, bool C, bool E) {
     }
 
       KioskAskStatus("19/05/21,16:17:43+00;rcs;;;;;;942583047");
-      KioskControlSmsFeedback("rcsOK");
+      KioskControlSmsFeedback("rcsOK",poort);
 
     if (gsm.IsRegistered() && smsFeedback == true) {
       KioskCalculateCredit(poort);
@@ -278,9 +278,73 @@ void KioskRapport () {
     lcd.print(rapportPoortnummer[0] + rapportMeting[0] );
 }
 
-void KioskControlSmsFeedback(String smsType) {
+
+void KioskSmsFouten(int poort) {
+  String poortnummer = String(poort+1);
+  lcdStart();
+
+  Serial.println(SmsMessType);
+
+  if (SmsMessType == "ikOK") {
+    smsFeedback = false;
+    Serial.println("Fout sms poort" + poortnummer + ": initialize kiosk sms");
+    lcd.setCursor(0,2);
+    lcd.print("Fout sms poort" + poortnummer);
+    lcd.setCursor(0,3);
+    lcd.print(": initialize kiosk");
+  }
+
+  else if (SmsMessType == "icOK") {
+      smsFeedback = false;
+      Serial.println("Fout sms poort" + poortnummer + ": klant toevoegen");
+      lcd.setCursor(0,2);
+      lcd.print("Fout sms poort" + poortnummer);
+      lcd.setCursor(0,3);
+      lcd.print(": init klant");
+  }
+  else if (SmsMessType == "accOK") {
+    smsFeedback = false;
+    Serial.println("Fout sms poort " + poortnummer + ": credits toevoegen");
+    lcd.setCursor(0,2);
+    lcd.print("Fout sms poort" + poortnummer);
+    lcd.setCursor(0,3);
+    lcd.print(": add credits");
+  }
+
+  else if (SmsMessType == "rcsOK") {
+    smsFeedback = false;
+    Serial.println("Fout sms poort" + poortnummer + ": status");
+    lcd.setCursor(0,2);
+    lcd.print("Fout sms poort" + poortnummer );
+    lcd.setCursor(0,3);
+    lcd.print(": status opvragen");
+  }
+
+  else if (SmsMessType == "dcOK") {
+    smsFeedback = false;
+    Serial.println("Fout sms poort" + poortnummer + ": delete klant");
+    lcd.setCursor(0,2);
+    lcd.print("Fout sms poort" + poortnummer);
+    lcd.setCursor(0,3);
+    lcd.print(": delete klant");
+  }
+  
+  else
+  {
+    smsFeedback = false;
+    Serial.println("Fout sms poort" + poortnummer + "feedback niet ontvangen");
+    lcd.setCursor(0,2);
+    lcd.print("Fout sms poort" + poortnummer);
+    lcd.setCursor(0,3);
+    lcd.print(": geen feedback");
+  }
+}
+
+
+void KioskControlSmsFeedback(String smsType, int poort) {
 
   if (gsm.IsRegistered() && smsFeedback == true) {
+
     lcdStart();
     for (int i = 0; i < 2; i++)
     {
@@ -310,18 +374,12 @@ void KioskControlSmsFeedback(String smsType) {
       else
       {
         Serial.println("SMS 'OK' mislukt");
-        smsFeedback = false;
-        Serial.println("Fout met sms " + smsType);
-        lcdStart();
-        lcd.setCursor(0,2);
-        lcd.print("Fout met sms " + smsType);
+        KioskSmsFouten(poort);
         delay(2000);
-        
       }
     }
-  }
+  } 
 }
-
 void KioskInit(String messageIK) {
 
 
@@ -412,11 +470,11 @@ void KioskKlantInit (int poort, int credit) {
     KioskAddClient(addClient);
     delay(20000);
     Check_SMS();
-    KioskControlSmsFeedback("icOK");
+    KioskControlSmsFeedback("icOK", poort);
     KioskAddCredit(addCredit);
     delay(20000);
     Check_SMS();
-    KioskControlSmsFeedback("accOK");
+    KioskControlSmsFeedback("accOK", poort);
   }
 }
 
@@ -500,7 +558,7 @@ void KioskDeleteClient(int poort) {
       Serial.println(TESTBOX);
       delay(15000);
       Check_SMS();
-      KioskControlSmsFeedback("dcOK");
+      KioskControlSmsFeedback("dcOK", poort);
   } 
 }
 
@@ -568,12 +626,12 @@ Separates all SMS fields and store invariables
 convert Strings to correct variable types
 **********************************************/ 
 void parseSms(String _SmsText) {
- 
   Serial.println(_SmsText); // for test
   
   int StartChar = 0;
   findNextField(_SmsText, StartChar).toCharArray(GatewayTime,21);
   SmsMessType = findNextField(_SmsText, StartChar);
+  jowbrow = SmsMessType;
   SmsPortNum = (findNextField(_SmsText, StartChar));
   jowbro = SmsPortNum;
   findNextField(_SmsText, StartChar).toCharArray(SmsCustGsmNum,14);
