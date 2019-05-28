@@ -60,6 +60,8 @@ int enable = 28;
 String jowbro;
 String rapportMeting [8];
 bool smsFeedback;
+int restart = 0;
+int restartTimes = 3;
 
 /****************************************************
   ________  _______  _________  ___  ___  ________
@@ -155,6 +157,8 @@ void KioskGsmRegistration() {
     }
     else
     {
+      smsFeedback = false;
+      KioskPowerUsageReset();
       Serial.println("GSM not registerd");
       lcdStart();
       delay(200);
@@ -164,8 +168,6 @@ void KioskGsmRegistration() {
       lcd.print("check antenne");
       delay(500);
 
-      smsFeedback = false;
-      KioskPowerUsageReset();
       
     }
   }
@@ -174,35 +176,35 @@ void KioskGsmRegistration() {
 
 void KioskRoutine(int poort, int credit, bool A, bool B, bool C, bool E) {
 
-  if (gsm.IsRegistered() && smsFeedback == true) {
-
-      KioskInit("19/05/20,15:30:32+00;ik;+228;;;;;775135380");
-      KioskControlSmsFeedback("ikOK",poort);
-        
-      KioskKlantInit(poort,credit);
-
     if (gsm.IsRegistered() && smsFeedback == true) {
-      KioskPowerUsageSet(A, B, C, E);
-    }
 
-      delay(2000);
-    if (gsm.IsRegistered() && smsFeedback == true) {
-      KioskPowerUsageReset();
-    }
+        KioskInit("19/05/20,15:30:32+00;ik;+228;;;;;775135380");
+        KioskControlSmsFeedback("ikOK",poort);
+          
+        KioskKlantInit(poort,credit);
 
-      KioskAskStatus("19/05/21,16:17:43+00;rcs;;;;;;942583047");
-      KioskControlSmsFeedback("rcsOK",poort);
+      if (gsm.IsRegistered() && smsFeedback == true) {
+        KioskPowerUsageSet(A, B, C, E);
+      }
 
-    if (gsm.IsRegistered() && smsFeedback == true) {
-      KioskCalculateCredit(poort);
-    }
+        delay(2000);
+      if (gsm.IsRegistered() && smsFeedback == true) {
+        KioskPowerUsageReset();
+      }
 
-      KioskDeleteClient(poort);
-    
-    if (gsm.IsRegistered() && smsFeedback == true) {
-      KioskRapport();
+        KioskAskStatus("19/05/21,16:17:43+00;rcs;;;;;;942583047");
+        KioskControlSmsFeedback("rcsOK",poort);
+
+      if (gsm.IsRegistered() && smsFeedback == true) {
+        KioskCalculateCredit(poort);
+      }
+
+        KioskDeleteClient(poort);
+      
+      if (gsm.IsRegistered() && smsFeedback == true) {
+        KioskRapport();
+      }
     }
-  }
 }
 
 
@@ -283,64 +285,65 @@ void KioskRapport () {
 
 
 void KioskSmsFouten(int poort) {
+  
   String poortnummer = String(poort+1);
   lcdStart();
 
   Serial.println(SmsMessType);
-
-  if (SmsMessType == "ikOK") {
-    smsFeedback = false;
-    Serial.println("Fout sms poort" + poortnummer + ": initialize kiosk sms");
-    lcd.setCursor(0,2);
-    lcd.print("Fout sms poort" + poortnummer);
-    lcd.setCursor(0,3);
-    lcd.print(": initialize kiosk");
-  }
-
-  else if (SmsMessType == "icOK") {
+  
+    if (SmsMessType == "ikOK") {
       smsFeedback = false;
-      Serial.println("Fout sms poort" + poortnummer + ": klant toevoegen");
+      Serial.println("Fout sms poort" + poortnummer + ": initialize kiosk sms");
       lcd.setCursor(0,2);
       lcd.print("Fout sms poort" + poortnummer);
       lcd.setCursor(0,3);
-      lcd.print(": init klant");
-  }
-  else if (SmsMessType == "accOK") {
-    smsFeedback = false;
-    Serial.println("Fout sms poort " + poortnummer + ": credits toevoegen");
-    lcd.setCursor(0,2);
-    lcd.print("Fout sms poort" + poortnummer);
-    lcd.setCursor(0,3);
-    lcd.print(": add credits");
-  }
+      lcd.print(": initialize kiosk");
+    }
 
-  else if (SmsMessType == "rcsOK") {
-    smsFeedback = false;
-    Serial.println("Fout sms poort" + poortnummer + ": status");
-    lcd.setCursor(0,2);
-    lcd.print("Fout sms poort" + poortnummer );
-    lcd.setCursor(0,3);
-    lcd.print(": status opvragen");
-  }
+    else if (SmsMessType == "icOK") {
+        smsFeedback = false;
+        Serial.println("Fout sms poort" + poortnummer + ": klant toevoegen");
+        lcd.setCursor(0,2);
+        lcd.print("Fout sms poort" + poortnummer);
+        lcd.setCursor(0,3);
+        lcd.print(": init klant");
+    }
+    else if (SmsMessType == "accOK") {
+      smsFeedback = false;
+      Serial.println("Fout sms poort " + poortnummer + ": credits toevoegen");
+      lcd.setCursor(0,2);
+      lcd.print("Fout sms poort" + poortnummer);
+      lcd.setCursor(0,3);
+      lcd.print(": add credits");
+    }
 
-  else if (SmsMessType == "dcOK") {
-    smsFeedback = false;
-    Serial.println("Fout sms poort" + poortnummer + ": delete klant");
-    lcd.setCursor(0,2);
-    lcd.print("Fout sms poort" + poortnummer);
-    lcd.setCursor(0,3);
-    lcd.print(": delete klant");
-  }
-  
-  else
-  {
-    smsFeedback = false;
-    Serial.println("Fout sms poort" + poortnummer + "feedback niet ontvangen");
-    lcd.setCursor(0,2);
-    lcd.print("Fout sms poort" + poortnummer);
-    lcd.setCursor(0,3);
-    lcd.print(": geen feedback");
-  }
+    else if (SmsMessType == "rcsOK") {
+      smsFeedback = false;
+      Serial.println("Fout sms poort" + poortnummer + ": status");
+      lcd.setCursor(0,2);
+      lcd.print("Fout sms poort" + poortnummer );
+      lcd.setCursor(0,3);
+      lcd.print(": status opvragen");
+    }
+
+    else if (SmsMessType == "dcOK") {
+      smsFeedback = false;
+      Serial.println("Fout sms poort" + poortnummer + ": delete klant");
+      lcd.setCursor(0,2);
+      lcd.print("Fout sms poort" + poortnummer);
+      lcd.setCursor(0,3);
+      lcd.print(": delete klant");
+    }
+    
+    else
+    {
+      smsFeedback = false;
+      Serial.println("Fout sms poort" + poortnummer + "feedback niet ontvangen");
+      lcd.setCursor(0,2);
+      lcd.print("Fout sms poort" + poortnummer);
+      lcd.setCursor(0,3);
+      lcd.print(": geen feedback");
+    } 
 }
 
 
@@ -357,7 +360,7 @@ void KioskControlSmsFeedback(String smsType, int poort) {
         lcd.setCursor(0,2);
         lcd.print("sms" + smsType + "ontvangen");
         smsFeedback = true;
-        delay (2000);
+        delay (5000);
       }
       
       else if (i < 1)
@@ -378,7 +381,7 @@ void KioskControlSmsFeedback(String smsType, int poort) {
       {
         Serial.println("SMS 'OK' mislukt");
         KioskSmsFouten(poort);
-        delay(2000);
+        delay(5000);
       }
     }
   } 
