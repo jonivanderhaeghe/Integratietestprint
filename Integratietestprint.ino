@@ -93,19 +93,20 @@ void setup() {
     pinMode(LCDLedPin, OUTPUT); // V4+
   #endif
 
-  // KioskGsmRegistration();
+  KioskGsmRegistration();
 
-  // KioskRoutine(0,5, false, false, false, true);
-  // KioskRoutine(1,20, true, false, false, true);
-  KioskCalculateCredit(0);
-  KioskCalculateCredit(1);
-  KioskCalculateCredit(2);
-  KioskCalculateCredit(3);
-  KioskCalculateCredit(4);
-  KioskCalculateCredit(5);
-  KioskCalculateCredit(6);
-  KioskCalculateCredit(7);
-  KioskRapport();
+  // KioskFraude("19/06/04,16:36:6+00;rk;0;;;;;422083565", 0);
+  KiosFraudekRoutine(0,5, false, false, false, true);
+  KioskRoutine(1,20, true, false, false, true);
+  // KioskCalculateCredit(0);
+  // KioskCalculateCredit(1);
+  // KioskCalculateCredit(2);
+  // KioskCalculateCredit(3);
+  // KioskCalculateCredit(4);
+  // KioskCalculateCredit(5);
+  // KioskCalculateCredit(6);
+  // KioskCalculateCredit(7);
+  // KioskRapport();
     
 }  // end setup ***************************************
 
@@ -183,7 +184,7 @@ void KioskGsmRegistration() {
 }
 
 
-void KioskRoutine(int poort, int credit, bool A, bool B, bool C, bool E) {
+void KiosFraudekRoutine(int poort, int credit, bool A, bool B, bool C, bool E) {
   Serial.println(buttonState);
   do
   {
@@ -216,7 +217,43 @@ void KioskRoutine(int poort, int credit, bool A, bool B, bool C, bool E) {
         KioskCalculateCredit(poort);
       }
 
+      KioskFraude("19/06/04,15:58:12+00;rk;0;;;;;705920096", poort);
+
         KioskDeleteClient(poort);
+    }
+  }
+}
+
+
+void KioskRoutine(int poort, int credit, bool A, bool B, bool C, bool E) {
+
+  if (buttonState == HIGH) {
+  Serial.println(buttonState);
+    if (gsm.IsRegistered() && smsFeedback == true) {
+  Serial.println(buttonState);
+
+        KioskInit("19/05/20,15:30:32+00;ik;+228;;;;;775135380");
+        KioskControlSmsFeedback("ikOK",poort);
+          
+        KioskKlantInit(poort,credit);
+
+      if (gsm.IsRegistered() && smsFeedback == true) {
+        KioskPowerSet(A, B, C, E);
+      }
+
+        delay(2000);
+      if (gsm.IsRegistered() && smsFeedback == true) {
+        KioskPowerReset();
+      }
+
+        KioskAskStatus("19/05/21,16:17:43+00;rcs;;;;;;942583047");
+        KioskControlSmsFeedback("rcsOK",poort);
+
+      if (gsm.IsRegistered() && smsFeedback == true) {
+        KioskCalculateCredit(poort);
+      }
+
+      KioskDeleteClient(poort);
     }
   }
 }
@@ -469,7 +506,7 @@ void KioskControlSmsFeedback(String smsType, int poort) {
       {
         Serial.println("SMS " + smsType + " ontvangen");
         lcd.setCursor(0,2);
-        lcd.print("sms " + smsType + " recevoir");
+        lcd.print("sms " + smsType + " recu");
         smsFeedback = true;
         delay (5000);
       }
@@ -563,7 +600,7 @@ void KioskAddCredit(String messageACC) {
       lcd.setCursor(0,1);
       lcd.print("Teste ...");
       lcd.setCursor(0,3);
-      lcd.print("ajouter client" );
+      lcd.print("ajouter credit" );
 
       gsm.SendSMS(TESTBOX, ConvertedMessageACC);
       Serial.println("Message sent: ");
@@ -684,21 +721,59 @@ void KioskDeleteClient(int poort) {
 }
 
 
-void KioskFraude() {
+void KioskFraude(String messageRK, int poort) {
 
-    if (gsm.IsRegistered() && smsFeedback == true){
       KioskLCDTestprint();
       lcd.setCursor(0,1);
       lcd.print("Teste ...");
       lcd.setCursor(0,3);
-      lcd.print("Fraud detection" );
+      lcd.print("Faire fraude" );
+      
+      do
+  {
+    buttonState = digitalRead(button);
+  } while (buttonState == LOW);
+    if (gsm.IsRegistered() && smsFeedback == true && buttonState == HIGH){
+      KioskLCDTestprint();
+      lcd.setCursor(0,1);
+      lcd.print("Teste ...");
+      lcd.setCursor(0,3);
+      lcd.print("Fraude detection" );
 
-      delay(10000);
-      Check_SMS();
-      delay(4000);
-      KioskControlSmsFeedback("ConvOff", 0);
+      
+      delay(2000);
+      char ConvertedMessageRK[121] = "";
+      messageRK.toCharArray(ConvertedMessageRK,121);
+        delay(10000);
+        Check_SMS();
+        delay(4000);
+        KioskControlSmsFeedback("VaultOpen", poort);
 
-    } 
+        KioskLCDTestprint();
+        lcd.setCursor(0,1);
+        lcd.print("Teste ...");
+        lcd.setCursor(0,3);
+        lcd.print("relacher SolergieBox");
+
+        gsm.SendSMS(TESTBOX, ConvertedMessageRK);
+        delay(2000);
+        Serial.println("Message sent: ");
+        Serial.print (ConvertedMessageRK);
+        Serial.print(" to: ");
+        Serial.println(TESTBOX);
+
+        delay(10000);
+        Check_SMS();
+        delay(500);
+        KioskControlSmsFeedback("rkOK", poort);
+        smsFeedback = true;
+
+        KioskLCDTestprint();
+        lcd.setCursor(0,1);
+        lcd.print("Teste ...");
+        lcd.setCursor(0,3);
+        lcd.print("fraude test OK");
+    }
 }
 
 
