@@ -480,7 +480,16 @@ void KioskSmsFouten(int poort) {
       lcd.setCursor(0,3);
       lcd.print(": demenager client");
     }
-    
+
+    else if (SmsMessType == "rkOK") {
+      smsFeedback = false;
+      Serial.println("Fout sms poort" + poortnummer + ": release kiosk");
+      lcd.setCursor(0,2);
+      lcd.print("Faux sms port" + poortnummer);
+      lcd.setCursor(0,3);
+      lcd.print(":relacher Box");
+    }
+
     else
     {
       smsFeedback = false;
@@ -773,6 +782,7 @@ void KioskFraude(String messageRK, int poort) {
         lcd.print("Teste ...");
         lcd.setCursor(0,3);
         lcd.print("fraude test OK");
+        delay(5000);
     }
 }
 
