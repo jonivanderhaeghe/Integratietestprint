@@ -58,7 +58,7 @@ int selectC = 26;
 int enable = 28;
 int button = 30;
 
-String jowbro;
+String CopySmsPortNum;
 String rapportMeting [8];
 bool smsFeedback;
 int restart = 0;
@@ -94,12 +94,16 @@ void setup() {
   #endif
 
   KioskGsmRegistration();
-  KioskRoutine(0,50, false, false, false, true);
-  // KioskPowerUsageSet(true,false,false,true);
+  delay(2000);
+  KioskFraude();
+  // KioskRoutine(0,5, false, false, false, true);
+  // KioskRoutine(1,8, true, false, false, true);
+  // KioskRoutine(2,3, false, true, false, true);
+  // KioskPowerSet(true,false,false,true);
     
 }  // end setup ***************************************
 
-void lcdStart() {
+void KioskLCDTestprint() {
   lcd.clear();
   lcd.setCursor(0,0);
   lcd.print("Integratietestprint");
@@ -109,17 +113,16 @@ void lcdStart() {
 void KioskGsmRegistration() {
 
 
-  lcdStart();
+  KioskLCDTestprint();
 	lcd.setCursor(0, 2);
   delay(200);
 	lcd.print("Initializing GSM");
 
-  gsm.TurnOn(9600);	//module reset power on; factory reset, disable echo
+  gsm.TurnOn(9600);
   Serial.println("End GSM Reset, trying to connect");
   
-  delay(7000); // wait 7 seconds, then see if registration ok
-	//GetRegistered();
-	gsm.CheckRegistration(); // updates status gsm.IsRegistered(), does InitParam(PARAM_SET_1) if needed
+  delay(7000);
+	gsm.CheckRegistration();
   Serial.println("GSM Init Done");
 
 
@@ -127,31 +130,31 @@ void KioskGsmRegistration() {
   {
     if (gsm.IsRegistered())
     {
-      Serial.println("GSM is registered");
-      Serial.println(gsm.IsRegistered());
-      KioskPowerUsageReset();
+      Serial.println("GSM Registered");
+      KioskPowerReset();
       smsFeedback = true;
+      delay(2000);
       Check_SMS();
       delay(500);
 
-      lcdStart();
+      KioskLCDTestprint();
       delay(200);
 	    lcd.setCursor(0, 2);
 	    lcd.print("Connection OK");
       i++;
+      delay(2000);
 
     }
     
-    else if (i <1)
+    else if (i < 1)
     {
-        Serial.println("GSM not registerd, opnieuw proberen ...");
-        lcdStart();
+        Serial.println("GSM not registered, try again ...");
+        KioskLCDTestprint();
         lcd.setCursor(0, 2);
-        lcd.print("Connection not OK");
+        lcd.print("Connection pas OK");
         lcd.setCursor(0,3);
-        lcd.print("check again");
+        lcd.print("verifier a nouveau");
 
-        Serial.println(gsm.IsRegistered());
         delay(500);
         gsm.TurnOn(9600);
         delay(7000);
@@ -161,17 +164,14 @@ void KioskGsmRegistration() {
     else
     {
       smsFeedback = false;
-      KioskPowerUsageReset();
-      Serial.println("GSM not registerd");
-      lcdStart();
-      delay(200);
-      lcd.setCursor(0, 2);
-      lcd.print("Connection not OK");
-      lcd.setCursor(0,3);
-      lcd.print("check antenne");
-      delay(500);
+      KioskPowerReset();
+      Serial.println("GSM not registered");
 
-      
+      KioskLCDTestprint();
+      lcd.setCursor(0, 2);
+      lcd.print("Connection pas OK");
+      lcd.setCursor(0,3);
+      lcd.print("controler l'antenne");
     }
   }
 }
@@ -179,10 +179,10 @@ void KioskGsmRegistration() {
 
 void KioskRoutine(int poort, int credit, bool A, bool B, bool C, bool E) {
   Serial.println(buttonState);
-do
-{
-  buttonState = digitalRead(button);
-} while (buttonState == LOW);
+  do
+  {
+    buttonState = digitalRead(button);
+  } while (buttonState == LOW);
 
   if (buttonState == HIGH) {
   Serial.println(buttonState);
@@ -195,12 +195,12 @@ do
         KioskKlantInit(poort,credit);
 
       if (gsm.IsRegistered() && smsFeedback == true) {
-        KioskPowerUsageSet(A, B, C, E);
+        KioskPowerSet(A, B, C, E);
       }
 
         delay(2000);
       if (gsm.IsRegistered() && smsFeedback == true) {
-        KioskPowerUsageReset();
+        KioskPowerReset();
       }
 
         KioskAskStatus("19/05/21,16:17:43+00;rcs;;;;;;942583047");
@@ -225,30 +225,26 @@ void KioskCalculateCredit(int poort) { // poort begin bij 0 tot en met 7, door d
 
       int val[16];
       int x = 0;
-      // String hond = "17,23,80,40,0,0,25,25,";
-      // hond.toInt();
-      // Serial.println(hond.toInt());
-      jowbro;
-      Serial.println(jowbro);
+      CopySmsPortNum;
+      Serial.println(CopySmsPortNum);
       for (int i = 0; i < 8; i++)
       {
-        val[x] = jowbro.toInt();
+        val[x] = CopySmsPortNum.toInt();
 
         if (val[x] < 10)
         {
-          jowbro.remove(0,2);
+          CopySmsPortNum.remove(0,2);
         }
         else if (val[x] > 10)
         {
-          jowbro.remove(0,3);
+          CopySmsPortNum.remove(0,3);
         }
 
-        // Serial.println(hond);
         Serial.print(val[x]);
         x++;
       }
 
-      String meting [4] = {"Stroomafname perfect", "Stroomafname binnen de marge", "slechte callibratie", "slechte bekabeling" };
+      String meting [4] = {"Stroomafname perfect", "Stroomafname in orde", "Slechte callibratie", "Slechte bekabeling" };
       // charAt(index) haal een karakter uit een string met index
       
       if (val[poort] == 0) {
@@ -276,7 +272,7 @@ void KioskCalculateCredit(int poort) { // poort begin bij 0 tot en met 7, door d
 
 void KioskRapport () {
 
-    lcdStart();
+    KioskLCDTestprint();
 
     String rapportPoortnummer [8] = {"Poort 1 : ", "Poort 2 : ", "Poort 3 : ", "Poort 4 : ", "Poort 5 : ", "Poort 6 : ", "Poort 7 : ", "Poort 8 : "};
     Serial.println("Rapport ...");
@@ -286,15 +282,64 @@ void KioskRapport () {
     lcd.print("Rapport ...");
     lcd.setCursor(0,2);
     lcd.print(rapportPoortnummer[0]);
+    lcd.setCursor(0,3);
     lcd.print(rapportMeting[0]);
 
     Serial.println(rapportPoortnummer[1] + rapportMeting[1] );
+    lcd.setCursor(0,1);
+    lcd.print("Rapport ...");
+    lcd.setCursor(0,2);
+    lcd.print(rapportPoortnummer[1]);
+    lcd.setCursor(0,3);
+    lcd.print(rapportMeting[1]);
+
     Serial.println(rapportPoortnummer[2] + rapportMeting[2] );
+    lcd.setCursor(0,1);
+    lcd.print("Rapport ...");
+    lcd.setCursor(0,2);
+    lcd.print(rapportPoortnummer[2]);
+    lcd.setCursor(0,3);
+    lcd.print(rapportMeting[2]);
+
     Serial.println(rapportPoortnummer[3] + rapportMeting[3] );
+    lcd.setCursor(0,1);
+    lcd.print("Rapport ...");
+    lcd.setCursor(0,2);
+    lcd.print(rapportPoortnummer[3]);
+    lcd.setCursor(0,3);
+    lcd.print(rapportMeting[3]);
+
     Serial.println(rapportPoortnummer[4] + rapportMeting[4] );
+    lcd.setCursor(0,1);
+    lcd.print("Rapport ...");
+    lcd.setCursor(0,2);
+    lcd.print(rapportPoortnummer[4]);
+    lcd.setCursor(0,3);
+    lcd.print(rapportMeting[4]);
+
     Serial.println(rapportPoortnummer[5] + rapportMeting[5] );
+    lcd.setCursor(0,1);
+    lcd.print("Rapport ...");
+    lcd.setCursor(0,2);
+    lcd.print(rapportPoortnummer[5]);
+    lcd.setCursor(0,3);
+    lcd.print(rapportMeting[5]);
+
     Serial.println(rapportPoortnummer[6] + rapportMeting[6] );
+    lcd.setCursor(0,1);
+    lcd.print("Rapport ...");
+    lcd.setCursor(0,2);
+    lcd.print(rapportPoortnummer[6]);
+    lcd.setCursor(0,3);
+    lcd.print(rapportMeting[6]);
+
     Serial.println(rapportPoortnummer[7] + rapportMeting[7] );
+    lcd.setCursor(0,1);
+    lcd.print("Rapport ...");
+    lcd.setCursor(0,2);
+    lcd.print(rapportPoortnummer[7]);
+    lcd.setCursor(0,3);
+    lcd.print(rapportMeting[7]);
 
 }
 
@@ -302,7 +347,7 @@ void KioskRapport () {
 void KioskSmsFouten(int poort) {
   
   String poortnummer = String(poort+1);
-  lcdStart();
+  KioskLCDTestprint();
 
   Serial.println(SmsMessType);
   
@@ -365,8 +410,10 @@ void KioskSmsFouten(int poort) {
 void KioskControlSmsFeedback(String smsType, int poort) {
 
   if (gsm.IsRegistered() && smsFeedback == true) {
+    Serial.println(SmsMessType);
+    delay(2000);
 
-    lcdStart();
+    KioskLCDTestprint();
     for (int i = 0; i < 2; i++)
     {
       if (SmsMessType == smsType)
@@ -383,7 +430,7 @@ void KioskControlSmsFeedback(String smsType, int poort) {
         for (int i = 0; i < 1; i++)
         {
           Serial.println("SMS " + smsType + " mislukt, opnieuw proberen ...");
-          lcdStart();
+          KioskLCDTestprint();
           lcd.setCursor(0,2);
           lcd.print("SMS " + smsType + " mislukt");
           lcd.setCursor(0,3);
@@ -405,15 +452,14 @@ void KioskControlSmsFeedback(String smsType, int poort) {
 
 void KioskInit(String messageIK) {
 
-
+  KioskLCDTestprint();
   char ConvertedMessageIK[121] = "";
   
   messageIK.toCharArray(ConvertedMessageIK,121);
 
   if (gsm.IsRegistered() && smsFeedback == true){
 
-      lcd.clear();
-      lcd.setCursor(0,0);
+      lcd.setCursor(0,1);
       lcd.print("Testen ...");
       lcd.setCursor(0,2);
       lcd.print("Initialize");
@@ -439,7 +485,7 @@ void KioskAddClient(String messageIC) {
   messageIC.toCharArray(ConvertedMessageIC,121);
   if (gsm.IsRegistered() && smsFeedback == true){
 
-      lcdStart();
+      KioskLCDTestprint();
       lcd.setCursor(0,1);
       lcd.print("Testen ...");
       lcd.setCursor(0,3);
@@ -464,7 +510,7 @@ void KioskAddCredit(String messageACC) {
 
   if (gsm.IsRegistered() && smsFeedback == true){
 
-      lcdStart();
+      KioskLCDTestprint();
       lcd.setCursor(0,1);
       lcd.print("Testen ...");
       lcd.setCursor(0,3);
@@ -502,9 +548,9 @@ void KioskKlantInit (int poort, int credit) {
 }
 
 
-void KioskPowerUsageSet (bool pinA, bool pinB, bool pinC, bool pinE) {
+void KioskPowerSet (bool pinA, bool pinB, bool pinC, bool pinE) {
   
-    lcdStart();
+    KioskLCDTestprint();
     lcd.setCursor(0,1);
     lcd.print("Testen ...");
     lcd.setCursor(0,3);
@@ -518,9 +564,9 @@ void KioskPowerUsageSet (bool pinA, bool pinB, bool pinC, bool pinE) {
 }
 
 
-void KioskPowerUsageReset() {
+void KioskPowerReset() {
 
-    lcdStart();
+    KioskLCDTestprint();
     lcd.setCursor(0,2);
     lcd.print("reset Stroomafname");
 
@@ -542,7 +588,7 @@ void KioskAskStatus(String messageRCS) {
 
   if (gsm.IsRegistered() && smsFeedback == true){
 
-      lcdStart();
+      KioskLCDTestprint();
       lcd.setCursor(0,1);
       lcd.print("Testen ...");
       lcd.setCursor(0,3);
@@ -563,7 +609,7 @@ void KioskAskStatus(String messageRCS) {
 void KioskDeleteClient(int poort) {
 
   if (gsm.IsRegistered() && smsFeedback == true){
-      lcdStart();
+      KioskLCDTestprint();
       lcd.setCursor(0,1);
       lcd.print("Testen ...");
       lcd.setCursor(0,3);
@@ -584,6 +630,24 @@ void KioskDeleteClient(int poort) {
       Check_SMS();
       KioskControlSmsFeedback("dcOK", poort);
   } 
+}
+
+
+void KioskFraude() {
+
+    if (gsm.IsRegistered() && smsFeedback == true){
+      KioskLCDTestprint();
+      lcd.setCursor(0,1);
+      lcd.print("Testen ...");
+      lcd.setCursor(0,3);
+      lcd.print("Fraude detectie:" );
+
+      delay(10000);
+      Check_SMS();
+      delay(4000);
+      KioskControlSmsFeedback("ConvOff", 0);
+
+    } 
 }
 
 
@@ -656,7 +720,7 @@ void parseSms(String _SmsText) {
   findNextField(_SmsText, StartChar).toCharArray(GatewayTime,21);
   SmsMessType = findNextField(_SmsText, StartChar);
   SmsPortNum = (findNextField(_SmsText, StartChar));
-  jowbro = SmsPortNum;
+  CopySmsPortNum = SmsPortNum;
   findNextField(_SmsText, StartChar).toCharArray(SmsCustGsmNum,14);
   SmsCredits = StringToLong(findNextField(_SmsText, StartChar));
   SmsDummy1 = findNextField(_SmsText, StartChar);           //A* using these dummies for parsing of new SMS message type
