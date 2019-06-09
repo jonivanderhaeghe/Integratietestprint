@@ -107,28 +107,28 @@ void setup() {
     buttonState = digitalRead(button);
     Serial.println(buttonState);
   } while (buttonState == HIGH);
-  KioskPowerSet(false, false, false, true);
+  KioskPowerSet(0,false, false, false, true);
   delay(2000);
   KioskPowerReset();
-  KioskPowerSet(true, false, false, true);
+  KioskPowerSet(1,true, false, false, true);
   delay(2000);
   KioskPowerReset();
-  KioskPowerSet(false, true, false, true);
+  KioskPowerSet(2, false, true, false, true);
   delay(2000);
   KioskPowerReset();
-  KioskPowerSet(true, true, false, true);
+  KioskPowerSet(3, true, true, false, true);
   delay(2000);
   KioskPowerReset();
-  KioskPowerSet(false, false, true, true);
+  KioskPowerSet(4, false, false, true, true);
   delay(2000);
   KioskPowerReset();
-  KioskPowerSet(true, false, true, true);
+  KioskPowerSet(5, true, false, true, true);
   delay(2000);
   KioskPowerReset();
-  KioskPowerSet(false, true, true, true);
+  KioskPowerSet(6, false, true, true, true);
   delay(2000);
   KioskPowerReset();
-  KioskPowerSet(true, true, true, true);
+  KioskPowerSet(7, true, true, true, true);
   delay(2000);
   KioskPowerReset();
   // KioskRapport();
@@ -233,7 +233,7 @@ void KiosFraudekRoutine(int poort, int credit, bool A, bool B, bool C, bool E) {
         KioskKlantInit(poort,credit);
 
       if (gsm.IsRegistered() && smsFeedback == true) {
-        KioskPowerSet(A, B, C, E);
+        KioskPowerSet(poort, A, B, C, E);
       }
 
         delay(2000);
@@ -273,7 +273,7 @@ void KioskRoutine(int poort, int credit, bool A, bool B, bool C, bool E) {
         KioskKlantInit(poort,credit);
 
       if (gsm.IsRegistered() && smsFeedback == true) {
-        KioskPowerSet(A, B, C, E);
+        KioskPowerSet(poort, A, B, C, E);
       }
 
         delay(2000);
@@ -466,7 +466,7 @@ void KioskRapport () {
 
 void KioskSmsFouten(int poort) {
   
-  String poortnummer = String(poort+1);
+  String poortnummer = String(poort++);
   KioskLCDTestprint();
 
   Serial.println(SmsMessType);
@@ -679,16 +679,17 @@ void KioskKlantInit (int poort, int credit) {
 
 void KioskPowerSet (int poort, bool pinA, bool pinB, bool pinC, bool pinE) {
   
+    String poortnummer = String(poort++);
     KioskLCDTestprint();
     lcd.setCursor(0,1);
     lcd.print("Teste ...");
     lcd.setCursor(0,2);
-    lcd.print("port" + poort);
+    lcd.print("port " + poort);
     lcd.setCursor(0,3);
     lcd.print("captage du courant");
 
     Serial.println("stroom aan");
-    digitalWrite(selectA,pinA);
+    digitalWrite(selectA, pinA);
     digitalWrite(selectB, pinB);
     digitalWrite(selectC, pinC);
     digitalWrite(enable, pinE);
@@ -708,7 +709,6 @@ void KioskPowerReset() {
     digitalWrite(selectB, LOW);
     digitalWrite(selectC, LOW);
     digitalWrite(enable, LOW);
-    delay(200);
 }
 
 
