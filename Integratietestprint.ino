@@ -679,12 +679,13 @@ void KioskKlantInit (int poort, int credit) {
 
 void KioskPowerSet (int poort, bool pinA, bool pinB, bool pinC, bool pinE) {
   
-    String poortnummer = String(poort++);
+    String poortnummer = String(poort+1);
+
     KioskLCDTestprint();
     lcd.setCursor(0,1);
     lcd.print("Teste ...");
     lcd.setCursor(0,2);
-    lcd.print("port " + poort);
+    lcd.print("port " + poortnummer);
     lcd.setCursor(0,3);
     lcd.print("captage du courant");
 
