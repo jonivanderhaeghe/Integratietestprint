@@ -93,20 +93,50 @@ void setup() {
     pinMode(LCDLedPin, OUTPUT); // V4+
   #endif
 
-  KioskGsmRegistration();
-
-  // KioskFraude("19/06/04,16:36:6+00;rk;0;;;;;422083565", 0);
-  KiosFraudekRoutine(0,5, false, false, false, true);
-  KioskRoutine(1,20, true, false, false, true);
-  // KioskCalculateCredit(0);
-  // KioskCalculateCredit(1);
-  // KioskCalculateCredit(2);
-  // KioskCalculateCredit(3);
-  // KioskCalculateCredit(4);
-  // KioskCalculateCredit(5);
-  // KioskCalculateCredit(6);
-  // KioskCalculateCredit(7);
+  // KioskGsmRegistration();
+  // KiosFraudekRoutine(0,330, false, false, false, true);
+  // KioskRoutine(1,330, true, false, false, true);
+  // KioskRoutine(2,330, false, true, false, true);
+  // KioskRoutine(3,330, true, true, false, true);
+  // KioskRoutine(4,330, false, false, true, true);
+  // KioskRoutine(5,330, true, false, true, true);
+  // KioskRoutine(6,330, false, true, true, true);
+  // KioskRoutine(7,330, true, true, true, true);
+    do
+  {
+    buttonState = digitalRead(button);
+    Serial.println(buttonState);
+  } while (buttonState == HIGH);
+  KioskPowerSet(false, false, false, true);
+  delay(2000);
+  KioskPowerReset();
+  KioskPowerSet(true, false, false, true);
+  delay(2000);
+  KioskPowerReset();
+  KioskPowerSet(false, true, false, true);
+  delay(2000);
+  KioskPowerReset();
+  KioskPowerSet(true, true, false, true);
+  delay(2000);
+  KioskPowerReset();
+  KioskPowerSet(false, false, true, true);
+  delay(2000);
+  KioskPowerReset();
+  KioskPowerSet(true, false, true, true);
+  delay(2000);
+  KioskPowerReset();
+  KioskPowerSet(false, true, true, true);
+  delay(2000);
+  KioskPowerReset();
+  KioskPowerSet(true, true, true, true);
+  delay(2000);
+  KioskPowerReset();
   // KioskRapport();
+
+
+  if (gsm.IsRegistered() && smsFeedback == true) {
+    KioskRapport();
+  }
     
 }  // end setup ***************************************
 
@@ -144,6 +174,7 @@ void KioskGsmRegistration() {
       Check_SMS();
       delay(500);
 
+      Serial.println("connectie OK");
       KioskLCDTestprint();
       delay(200);
 	    lcd.setCursor(0, 2);
@@ -189,7 +220,7 @@ void KiosFraudekRoutine(int poort, int credit, bool A, bool B, bool C, bool E) {
   do
   {
     buttonState = digitalRead(button);
-  } while (buttonState == LOW);
+  } while (buttonState == HIGH);
 
   if (buttonState == HIGH) {
   Serial.println(buttonState);
@@ -217,8 +248,9 @@ void KiosFraudekRoutine(int poort, int credit, bool A, bool B, bool C, bool E) {
         KioskCalculateCredit(poort);
       }
 
-      KioskFraude("19/06/04,15:58:12+00;rk;0;;;;;705920096", poort);
-
+      if (gsm.IsRegistered() && smsFeedback == true) {
+        KioskFraude("19/06/04,15:58:12+00;rk;0;;;;;705920096", poort);
+      }
         KioskDeleteClient(poort);
     }
   }
@@ -227,13 +259,16 @@ void KiosFraudekRoutine(int poort, int credit, bool A, bool B, bool C, bool E) {
 
 void KioskRoutine(int poort, int credit, bool A, bool B, bool C, bool E) {
 
-  if (buttonState == HIGH) {
   Serial.println(buttonState);
-    if (gsm.IsRegistered() && smsFeedback == true) {
-  Serial.println(buttonState);
+  do
+  {
+    buttonState = digitalRead(button);
+  } while (buttonState == LOW);
 
-        KioskInit("19/05/20,15:30:32+00;ik;+228;;;;;775135380");
-        KioskControlSmsFeedback("ikOK",poort);
+    if (gsm.IsRegistered() && smsFeedback == true) {
+
+        // KioskInit("19/05/20,15:30:32+00;ik;+228;;;;;775135380");
+        // KioskControlSmsFeedback("ikOK",poort);
           
         KioskKlantInit(poort,credit);
 
@@ -256,7 +291,6 @@ void KioskRoutine(int poort, int credit, bool A, bool B, bool C, bool E) {
       KioskDeleteClient(poort);
     }
   }
-}
 
 
 void KioskCalculateCredit(int poort) { // poort begin bij 0 tot en met 7, door de index van een array
@@ -314,9 +348,9 @@ void KioskRapport () {
   while(1){
 
   buttonState = digitalRead(button);
-  delay(2000);
+  delay(250);
   Serial.println(buttonState);
-  if (buttonState == HIGH) {
+  if (buttonState == LOW) {
     screenSelect++;
   }
 
@@ -643,11 +677,13 @@ void KioskKlantInit (int poort, int credit) {
 }
 
 
-void KioskPowerSet (bool pinA, bool pinB, bool pinC, bool pinE) {
+void KioskPowerSet (int poort, bool pinA, bool pinB, bool pinC, bool pinE) {
   
     KioskLCDTestprint();
     lcd.setCursor(0,1);
     lcd.print("Teste ...");
+    lcd.setCursor(0,2);
+    lcd.print("port" + poort);
     lcd.setCursor(0,3);
     lcd.print("captage du courant");
 
